@@ -1,34 +1,64 @@
-
 export default async function handler(req, res) {
-    // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { jobDesc, userBio } = req.body;
+    const { jobDesc, userBio, licenseKey, tone, successMemo } = req.body;
 
-    if (!jobDesc || !userBio) {
+    if (!jobDesc || !userBio || !licenseKey) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    // 1. Lisans Doğrulama (Geri getirildi ve sağlamlaştırıldı)
+    try {
+        const licenseCheck = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ 'license_key': licenseKey })
+        });
 
+        const licenseData = await licenseCheck.json();
+
+        if (!licenseCheck.ok || !licenseData.valid) {
+            return res.status(401).json({ error: 'Invalid or inactive license key' });
+        }
+    } catch (err) {
+        return res.status(500).json({ error: 'License verification error' });
+    }
+
+    // 2. OpenAI API İsteği
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
     if (!OPENAI_API_KEY) {
-        return res.status(500).json({ error: 'API key not configured on server' });
+        return res.status(500).json({ error: 'Server configuration error' });
     }
 
     const prompt = `
-        You are a professional Upwork proposal writer.
-        User Info: ${userBio}
-        Job Description: ${jobDesc}
+        You are a highly skilled Upwork proposal specialist.
         
-        Task: Write a high-converting, personalized Upwork proposal.
-        Rules:
-        - Start with a strong hook related to their problem.
-        - Briefly mention why the user is the best fit.
-        - Add a call to action (suggest a quick chat).
-        - Keep it under 200 words.
-        - Use a friendly but professional tone.
+        USER BACKGROUND:
+        ${userBio}
+        
+        SELECTED TONE: ${tone || 'Professional'}
+        
+        SUCCESS SAMPLE (Mimic this style):
+        ${successMemo || 'Generic professional style'}
+
+        TARGET JOB DESCRIPTION:
+        ${jobDesc}
+        
+        TASK:
+        Write a winning, personalized cover letter that mimics the USER'S SUCCESS SAMPLE style while adhering to the SELECTED TONE.
+        
+        STRICT RULES:
+        1. Start with a customized hook that shows you've read the job description.
+        2. Keep the content focused on solving the client's problem.
+        3. Use the user's specific skills to justify the fit.
+        4. End with a subtle call to action.
+        5. Absolute Max 200 words.
+        6. NO EMOJIS in the output.
     `;
 
     try {
@@ -46,10 +76,7 @@ export default async function handler(req, res) {
         });
 
         const data = await response.json();
-
-        if (!response.ok) {
-            return res.status(response.status).json({ error: data.error?.message || 'OpenAI API Error' });
-        }
+        if (!response.ok) return res.status(response.status).json({ error: data.error?.message || 'OpenAI Error' });
 
         return res.status(200).json({ proposal: data.choices[0].message.content });
     } catch (error) {
