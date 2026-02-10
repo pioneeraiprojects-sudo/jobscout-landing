@@ -9,24 +9,26 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // 1. Lisans Doğrulama (Geri getirildi ve sağlamlaştırıldı)
-    try {
-        const licenseCheck = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({ 'license_key': licenseKey })
-        });
+    // 1. Verify License with Lemon Squeezy (Skip if it's a free user placeholder)
+    if (licenseKey !== "FREE_USER") {
+        try {
+            const licenseCheck = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ 'license_key': licenseKey })
+            });
 
-        const licenseData = await licenseCheck.json();
+            const licenseData = await licenseCheck.json();
 
-        if (!licenseCheck.ok || !licenseData.valid) {
-            return res.status(401).json({ error: 'Invalid or inactive license key' });
+            if (!licenseCheck.ok || !licenseData.valid) {
+                return res.status(401).json({ error: 'Invalid or inactive license key' });
+            }
+        } catch (err) {
+            return res.status(500).json({ error: 'License verification error' });
         }
-    } catch (err) {
-        return res.status(500).json({ error: 'License verification error' });
     }
 
     // 2. OpenAI API İsteği
