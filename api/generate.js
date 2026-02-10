@@ -51,8 +51,14 @@ export default async function handler(req, res) {
         TARGET JOB DESCRIPTION:
         ${jobDesc}
         
+        CLIENT CONTEXT:
+        - Country: ${req.body.clientData?.country || 'Unknown'}
+        - Total Spent: ${req.body.clientData?.totalSpent || 'N/A'}
+        - Client Rating: ${req.body.clientData?.rating || '5.0'}
+
         TASK:
-        Write a winning, personalized cover letter that mimics the USER'S SUCCESS SAMPLE style while adhering to the SELECTED TONE.
+        Write a winning, personalized cover letter. Mimic the USER'S SUCCESS SAMPLE style and SELECTED TONE. 
+        If relevant, subtly reference the client's context (e.g., timezone/country or their high rating) to build rapport.
         
         STRICT RULES:
         1. Start with a customized hook that shows you've read the job description.
