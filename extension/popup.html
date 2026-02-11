@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --up-green: #14a800;
+            --bg-deep: #050705;
+            --card-gray: #111611;
+            --border: #242b24;
+            --text-white: #ffffff;
+            --text-mute: #819181;
+        }
+
+        body {
+            width: 380px;
+            padding: 0;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-white);
+            overflow: hidden;
+        }
+
+        /* Tabs Header */
+        .tabs {
+            display: flex;
+            background: var(--card-gray);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-mute);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--up-green);
+            border-bottom-color: var(--up-green);
+            background: rgba(20, 168, 0, 0.05);
+        }
+
+        .container {
+            padding: 20px;
+            height: 520px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar styling */
+        .container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Components */
+        .label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--up-green);
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        textarea,
+        input {
+            width: 100%;
+            background: #0d110d;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: #fff;
+            padding: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 15px;
+        }
+
+        textarea:focus,
+        input:focus {
+            border-color: var(--up-green);
+        }
+
+        /* Tone Grid */
+        .tone-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tone-btn {
+            background: #0d110d;
+            border: 1px solid var(--border);
+            color: var(--text-mute);
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .tone-btn.active {
+            background: var(--up-green);
+            border-color: var(--up-green);
+            color: white;
+            box-shadow: 0 4px 12px rgba(20, 168, 0, 0.2);
+        }
+
+        /* Buttons */
+        .primary-btn {
+            width: 100%;
+            background: var(--up-green);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.1s;
+        }
+
+        .primary-btn:active {
+            transform: scale(0.98);
+        }
+
+        .primary-btn:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .secondary-btn {
+            width: 100%;
+            background: #1a1f1a;
+            color: white;
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        #output {
+            height: 200px;
+            background: #080a08;
+            border: 1px dotted var(--up-green);
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .status-msg {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-mute);
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .header-mini {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-gray);
+        }
+
+        .logo-text {
+            color: var(--up-green);
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-mini">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="icons/icon48.png" style="width: 24px; height: 24px;">
+            <div class="logo-text">JOBSCOUT AI</div>
+        </div>
+        <div style="font-size: 10px; color: var(--text-mute);">PRO EDITION</div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <div class="tab active" data-view="proposalView">Proposal</div>
+        <div class="tab" data-view="profileView">Experience</div>
+        <div class="tab" data-view="examplesView">Samples</div>
+        <div class="tab" data-view="settingsView">License</div>
+    </div>
+
+    <div class="container">
+
+        <!-- VIEW: PROPOSAL -->
+        <div id="proposalView" class="view active">
+            <div id="status" class="status-msg">Connecting to Upwork...</div>
+
+            <div class="tone-grid">
+                <button class="tone-btn active" data-tone="Balanced">Balanced</button>
+                <button class="tone-btn" data-tone="Aggressive">Aggressive</button>
+                <button class="tone-btn" data-tone="Friendly">Friendly</button>
+            </div>
+
+            <button id="generateBtn" class="primary-btn">Generate Winning Proposal</button>
+
+            <textarea id="output" readonly placeholder="AI output will appear here..."></textarea>
+
+            <button id="copyBtn" class="secondary-btn">COPY TO CLIPBOARD</button>
+        </div>
+
+        <!-- VIEW: EXPERIENCE -->
+        <div id="profileView" class="view">
+            <span class="label">Skills & Personal Bio</span>
+            <textarea id="userBioInput" style="height: 120px;"
+                placeholder="Describe who you are, your tech stack, and core strengths."></textarea>
+
+            <span class="label">Past Work Highlights</span>
+            <textarea id="pastWorkInput" style="height: 150px;"
+                placeholder="List 3-5 major projects you've completed and the results achieved."></textarea>
+
+            <button id="saveProfile" class="primary-btn">Save Experience</button>
+        </div>
+
+        <!-- VIEW: SAMPLES (Eski Teklifler) -->
+        <div id="examplesView" class="view">
+            <span class="label">Your Winning Proposal Samples</span>
+            <div style="font-size: 11px; color: var(--text-mute); margin-bottom: 10px;">
+                Paste 1 or 2 proposals that actually landed you jobs. The AI will mimic your writing style.
+            </div>
+            <textarea id="proposalSamplesInput" style="height: 300px;"
+                placeholder="Sample #1: Hello, I saw your post... [Your real past proposal]"></textarea>
+            <button id="saveSamples" class="primary-btn">Save Writing Style</button>
+        </div>
+
+        <!-- VIEW: LICENSE -->
+        <div id="settingsView" class="view">
+            <span class="label">Pro License Key</span>
+            <input type="password" id="apiKeyInput" placeholder="sk-proj-...">
+            <div style="font-size: 11px; color: var(--text-mute); margin-top: 10px; line-height: 1.4;">
+                * The key is stored locally and securely on your machine.
+            </div>
+            <button id="saveKey" class="primary-btn">Activate License</button>
+        </div>
+
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
