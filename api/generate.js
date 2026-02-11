@@ -26,34 +26,35 @@ export default async function handler(req, res) {
         return res.status(413).json({ error: 'Content too large. Please shorten your descriptions.' });
     }
 
-    // 3. Lisans Doğrulama & FREE_USER Koruması
-    // Gerçek sürümde FREE_USER silinecek, sadece sana özel bıraktım.
-    if (licenseKey !== "FREE_USER") {
-        try {
-            const LEMONSQUEEZY_API_KEY = process.env.LEMONSQUEEZY_API_KEY;
+    // 3. Lisans Doğrulama (Strict Mode - No Free Lunch)
+    try {
+        const LEMONSQUEEZY_API_KEY = process.env.LEMONSQUEEZY_API_KEY;
 
-            // Eğer LS key yoksa ama lisans girildiyse güvenli modda uyaralım
-            if (!LEMONSQUEEZY_API_KEY) {
-                console.warn("LemonSqueezy API Key missing in Vercel!");
-            } else {
-                const licenseCheck = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ 'license_key': licenseKey })
-                });
-
-                const licenseData = await licenseCheck.json();
-
-                if (!licenseCheck.ok || !licenseData.valid) {
-                    return res.status(401).json({ error: 'Invalid or expired license key. Please check your subscription.' });
-                }
-            }
-        } catch (err) {
-            return res.status(500).json({ error: 'License verification service unavailable.' });
+        if (!LEMONSQUEEZY_API_KEY) {
+            console.error("Critical: LemonSqueezy API Key missing in Vercel Env!");
+            // Güvenlik: Anahtar yoksa geçiş izni VERME.
+            return res.status(500).json({ error: 'License server configuration error. Please contact support.' });
         }
+
+        const licenseCheck = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ 'license_key': licenseKey })
+        });
+
+        const licenseData = await licenseCheck.json();
+
+        if (!licenseCheck.ok || !licenseData.valid) {
+            console.log(`Invalid License Attempt: ${licenseKey}`);
+            return res.status(401).json({ error: 'Invalid or expired license key. Please purchase a license.' });
+        }
+
+    } catch (err) {
+        console.error("License Validation Error:", err);
+        return res.status(500).json({ error: 'License verification service unavailable.' });
     }
 
     // 4. OpenAI Güvenliği (Stealth Lego Protocol)
